@@ -34,7 +34,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
     const handleSubmit = useCallback(
         (e: React.FormEvent) => {
             e.preventDefault();
-            onSave(title, description, priority, files, duration, finishedAt);
+            onSave(title, description, priority, files, finishedAt, duration);
             setTitle('');
             setDescription('');
             setPriority('medium');
