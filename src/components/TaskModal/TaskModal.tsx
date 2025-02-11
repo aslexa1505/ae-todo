@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo, ChangeEvent } from 'react';
 import { Task as TaskType, Comment } from 'store/types';
 import { Modal } from 'components/Modal/Modal';
 import './TaskModal.scss';
+import { formatDuration, parseDuration } from 'utils/taskUtils';
 
 interface TaskModalProps {
     task: TaskType;
     onClose: () => void;
-    onUpdateTask?: (updatedTask: TaskType) => void; // для обновления задачи в Redux/хранилище
+    onUpdateTask?: (updatedTask: TaskType) => void; // для обновления задачи в хранилище
     onOpenTask?: (task: TaskType) => void; // для открытия модалки по клику на подзадачу
 }
 
@@ -37,7 +38,7 @@ const CommentItem: React.FC<CommentItemProps> = memo(({ comment, task, onUpdateT
         const updatedReplies = [...(comment.replies ?? []), newReply];
         const updatedComment = { ...comment, replies: updatedReplies };
 
-        // Обновляем список комментариев, заменяя старый комментарий на обновленный
+        // Обновляем список комментариев, заменяя старый комментарий на обновлённый
         const updatedComments = (task.comments ?? []).map((c) =>
             c.id === comment.id ? updatedComment : c
         );
@@ -112,6 +113,39 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         setStatus(task.status);
         setFiles(task.files || []);
     }, [task]);
+
+    // Мемоизированное форматирование workTime
+    const formattedWorkTime = useMemo(() => {
+        if (!workTime) return '';
+        const totalSeconds = parseDuration(workTime);
+        return formatDuration(totalSeconds);
+    }, [workTime]);
+
+    // Обработчик загрузки изображений
+    const handleImageUpload = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files) return;
+        const filePromises = Array.from(e.target.files).map(
+            (file) =>
+                new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                })
+        );
+        try {
+            const imagesData = await Promise.all(filePromises);
+            // Добавляем новые изображения к уже загруженным
+            setFiles((prevFiles) => [...prevFiles, ...imagesData]);
+        } catch (err) {
+            console.error(err);
+        }
+    }, []);
+
+    // Обработчик удаления изображения по индексу
+    const handleDeleteImage = useCallback((index: number) => {
+        setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+    }, []);
 
     // Сохранение изменений основной задачи
     const handleSaveChanges = useCallback(() => {
@@ -258,6 +292,45 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                                     <option value="Development">Development</option>
                                     <option value="Done">Done</option>
                                 </select>
+                                <label>Время в работе (формат: 4h30m30s):</label>
+                                <input
+                                    value={workTime}
+                                    onChange={(e) => setWorkTime(e.target.value)}
+                                    placeholder="например, 4h30m30s"
+                                />
+                                <label>Дата окончания:</label>
+                                <input
+                                    type="datetime-local"
+                                    value={finishedAt}
+                                    onChange={(e) => setFinishedAt(e.target.value)}
+                                />
+                                <label>Фото:</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleImageUpload}
+                                />
+                                {files && files.length > 0 && (
+                                    <div className="images-preview">
+                                        {files.map((src, index) => (
+                                            <div className="image-container" key={index}>
+                                                <img
+                                                    src={src}
+                                                    alt={`Preview ${index}`}
+                                                    className="preview-image"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="delete-image-btn"
+                                                    onClick={() => handleDeleteImage(index)}
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </>
                         ) : (
                             <>
@@ -274,16 +347,34 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                                     <strong>Статус:</strong> {status}
                                 </p>
                                 <p>
-                                    <strong>Время в работе:</strong> {finishedAt} Ч
+                                    <strong>Время в работе:</strong>{' '}
+                                    {workTime ? formattedWorkTime : 'Не задано'}
                                 </p>
                                 <p>
                                     <strong>Дата окончания:</strong>{' '}
-                                    {new Date(workTime).toLocaleString()}
+                                    {finishedAt
+                                        ? new Date(finishedAt).toLocaleString()
+                                        : 'Не задана'}
                                 </p>
                                 <p>
                                     <strong>Дата создания:</strong>{' '}
                                     {new Date(task.createdAt).toLocaleString()}
                                 </p>
+                                <div className="images-preview">
+                                    {files && files.length > 0 ? (
+                                        files.map((src, index) => (
+                                            <div className="image-container" key={index}>
+                                                <img
+                                                    src={src}
+                                                    alt={`Task ${task.id} file ${index}`}
+                                                    className="preview-image"
+                                                />
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p>Нет фото</p>
+                                    )}
+                                </div>
                             </>
                         )}
                     </section>

@@ -1,6 +1,28 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Modal } from '../Modal/Modal';
 import './TaskFormModal.scss';
+
+// Функции для работы с длительностью
+const parseDuration = (input: string): number => {
+    const regex = /(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/;
+    const match = input.match(regex);
+    if (!match) return 0;
+    const hours = parseInt(match[1] || '0', 10);
+    const minutes = parseInt(match[2] || '0', 10);
+    const seconds = parseInt(match[3] || '0', 10);
+    return hours * 3600 + minutes * 60 + seconds;
+};
+
+const formatDuration = (totalSeconds: number): string => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    let result = '';
+    if (hours > 0) result += `${hours}h`;
+    if (minutes > 0) result += `${minutes}m`;
+    if (seconds > 0) result += `${seconds}s`;
+    return result || '0s';
+};
 
 interface TaskFormModalProps {
     isOpen: boolean;
@@ -23,6 +45,13 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
     const [duration, setDuration] = useState('');
     const [finishedAt, setFinishedAt] = useState('');
 
+    // Мемоизированное форматирование длительности для предпросмотра (опционально)
+    const formattedDuration = useMemo(() => {
+        if (!duration) return '';
+        const totalSeconds = parseDuration(duration);
+        return formatDuration(totalSeconds);
+    }, [duration]);
+
     const handleSubmit = useCallback(
         (e: React.FormEvent) => {
             e.preventDefault();
@@ -31,6 +60,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
             setDescription('');
             setPriority('medium');
             setFiles([]);
+            setDuration('');
+            setFinishedAt('');
             onClose();
         },
         [onSave, title, description, priority, files, duration, finishedAt, onClose]
@@ -59,6 +90,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
             setDescription('');
             setPriority('medium');
             setFiles([]);
+            setDuration('');
+            setFinishedAt('');
         }
     }, [isOpen]);
 
@@ -89,14 +122,15 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
                         <option value="medium">Средний</option>
                         <option value="high">Высокий</option>
                     </select>
-                    <label>Время в работе:</label>
+                    <label>Время в работе (формат: 4h30m30s):</label>
                     <input
-                        type="number"
+                        type="text"
                         value={duration}
                         onChange={(e) => setDuration(e.target.value)}
-                        placeholder="Длительность (в часах)"
+                        placeholder="4h30m30s"
                         required
                     />
+                    {formattedDuration && <p>Форматированное время: {formattedDuration}</p>}
                     <label>Дата окончания:</label>
                     <input
                         type="datetime-local"
