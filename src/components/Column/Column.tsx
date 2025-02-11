@@ -7,22 +7,23 @@ import { Task } from 'components/Task/Task';
 import './Column.scss';
 
 interface ColumnProps {
-    title: 'Queue' | 'Development' | 'Done';
+    type: 'Queue' | 'Development' | 'Done';
     tasks: TaskType[];
     onAddTask?: (column: 'Queue' | 'Development' | 'Done') => void;
     onEditTask?: (task: TaskType) => void;
+    title: 'В очереди' | 'В разработке' | 'Завершена';
 }
 
-export const Column: React.FC<ColumnProps> = ({ title, tasks, onAddTask, onEditTask }) => {
+export const Column: React.FC<ColumnProps> = ({ type, tasks, onAddTask, onEditTask, title }) => {
     return (
         <div className="column">
             <div className="column-header">
                 <h2>{title}</h2>
-                <button className="add-task-btn" onClick={() => onAddTask && onAddTask(title)}>
+                <button className="add-task-btn" onClick={() => onAddTask && onAddTask(type)}>
                     <FaPlus />
                 </button>
             </div>
-            <Droppable droppableId={title}>
+            <Droppable droppableId={type}>
                 {(provided) => (
                     <div ref={provided.innerRef} {...provided.droppableProps} className="task-list">
                         {tasks.map((task, index) => (

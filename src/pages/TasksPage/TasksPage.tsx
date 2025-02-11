@@ -166,22 +166,25 @@ export const TasksPage: React.FC = () => {
                 />
                 <div className="columns">
                     <Column
-                        title="Queue"
+                        type="Queue"
                         tasks={queueTasks}
                         onAddTask={handleAddTaskClick}
                         onEditTask={handleTaskEdit}
+                        title="В очереди"
                     />
                     <Column
-                        title="Development"
+                        type="Development"
                         tasks={developmentTasks}
                         onAddTask={handleAddTaskClick}
                         onEditTask={handleTaskEdit}
+                        title="В разработке"
                     />
                     <Column
-                        title="Done"
+                        type="Done"
                         tasks={doneTasks}
                         onAddTask={handleAddTaskClick}
                         onEditTask={handleTaskEdit}
+                        title="Завершена"
                     />
                 </div>
             </div>
