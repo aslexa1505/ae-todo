@@ -1,28 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Modal } from '../Modal/Modal';
+import { formatDuration, parseDuration } from 'utils/taskUtils';
 import './TaskFormModal.scss';
-
-// Функции для работы с длительностью
-const parseDuration = (input: string): number => {
-    const regex = /(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/;
-    const match = input.match(regex);
-    if (!match) return 0;
-    const hours = parseInt(match[1] || '0', 10);
-    const minutes = parseInt(match[2] || '0', 10);
-    const seconds = parseInt(match[3] || '0', 10);
-    return hours * 3600 + minutes * 60 + seconds;
-};
-
-const formatDuration = (totalSeconds: number): string => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    let result = '';
-    if (hours > 0) result += `${hours}h`;
-    if (minutes > 0) result += `${minutes}m`;
-    if (seconds > 0) result += `${seconds}s`;
-    return result || '0s';
-};
 
 interface TaskFormModalProps {
     isOpen: boolean;

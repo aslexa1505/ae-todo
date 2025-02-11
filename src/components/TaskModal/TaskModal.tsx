@@ -312,9 +312,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                                             )
                                         }
                                     >
-                                        <option value="Queue">Queue</option>
-                                        <option value="Development">Development</option>
-                                        <option value="Done">Done</option>
+                                        <option value="Queue">В очереди</option>
+                                        <option value="Development">В разработке</option>
+                                        <option value="Done">Завершена</option>
                                     </select>
                                     <label>Время в работе (формат: 4h30m30s):</label>
                                     <input
