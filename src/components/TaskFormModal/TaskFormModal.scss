@@ -1,0 +1,75 @@
+.task-form-modal {
+    padding: 16px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+
+    h2 {
+        margin: 0 0 16px;
+        font-size: 20px;
+        color: #333;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+
+        label {
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+
+            &:focus {
+                outline: 2px solid #4c6ef5;
+                outline-offset: -1px;
+            }
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+
+            button {
+                padding: 8px 12px;
+                border: none;
+                background-color: #4c6ef5;
+                color: white;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background-color 0.2s;
+
+                &:hover {
+                    background-color: #3a57d1;
+                }
+
+                // Вторая кнопка (например, "Отмена") может иметь другой стиль:
+                &:last-child {
+                    background-color: #f0f0f0;
+                    color: #333;
+
+                    &:hover {
+                        background-color: #e0e0e0;
+                    }
+                }
+            }
+        }
+    }
+}
