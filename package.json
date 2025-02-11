@@ -1,6 +1,6 @@
 {
     "name": "ae-todo",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "homepage": "https://aslexa1505.github.io/ae-todo",
     "private": true,
     "dependencies": {
