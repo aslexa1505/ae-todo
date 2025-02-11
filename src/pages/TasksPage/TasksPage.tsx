@@ -22,7 +22,8 @@ export const TasksPage: React.FC = () => {
 
     const dispatch = useDispatch();
     const [search, setSearch] = useState('');
-    const [sortCriteria, setSortCriteria] = useState('');
+    // Теперь критерий сортировки – один из: 'date', 'priority' или 'number'
+    const [sortCriteria, setSortCriteria] = useState<'date' | 'priority' | 'number'>('date');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [currentColumn, setCurrentColumn] = useState<'Queue' | 'Development' | 'Done' | null>(
         null
@@ -33,26 +34,32 @@ export const TasksPage: React.FC = () => {
     const filteredTasks = useMemo(() => {
         if (!selectedProject) return [];
         const lowerCaseSearch = search.toLowerCase();
-        let tasks = selectedProject.tasks.filter((task) =>
-            task.title.toLowerCase().includes(lowerCaseSearch)
+
+        // Фильтруем по заголовку или по номеру (приводим к строке)
+        let tasks = selectedProject.tasks.filter(
+            (task) =>
+                task.title.toLowerCase().includes(lowerCaseSearch) ||
+                String(task.number).toLowerCase().includes(lowerCaseSearch)
         );
 
-        if (sortCriteria === 'date') {
-            tasks = tasks.slice().sort((a, b) => {
-                const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-                return sortOrder === 'asc' ? diff : -diff;
-            });
-        } else if (sortCriteria === 'priority') {
-            const priorityOrder: { [key: string]: number } = {
-                low: 1,
-                medium: 2,
-                high: 3
-            };
-            tasks = tasks.slice().sort((a, b) => {
-                const diff = priorityOrder[a.priority] - priorityOrder[b.priority];
-                return sortOrder === 'asc' ? diff : -diff;
-            });
-        }
+        // Сортируем задачи согласно выбранному критерию
+        tasks = tasks.slice().sort((a, b) => {
+            let diff = 0;
+            if (sortCriteria === 'date') {
+                diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            } else if (sortCriteria === 'priority') {
+                const priorityOrder: { [key: string]: number } = {
+                    low: 1,
+                    medium: 2,
+                    high: 3
+                };
+                diff = priorityOrder[a.priority] - priorityOrder[b.priority];
+            } else if (sortCriteria === 'number') {
+                diff = a.number - b.number;
+            }
+            return sortOrder === 'asc' ? diff : -diff;
+        });
+
         return tasks;
     }, [selectedProject, search, sortCriteria, sortOrder]);
 
@@ -152,10 +159,10 @@ export const TasksPage: React.FC = () => {
                 <Toolbar
                     searchValue={search}
                     onSearchChange={setSearch}
-                    onSortChange={setSortCriteria}
-                    onToggleSortOrder={toggleSortOrder}
-                    sortOrder={sortOrder}
                     sortCriteria={sortCriteria}
+                    onSortChange={setSortCriteria}
+                    sortOrder={sortOrder}
+                    onToggleSortOrder={toggleSortOrder}
                 />
                 <div className="columns">
                     <Column

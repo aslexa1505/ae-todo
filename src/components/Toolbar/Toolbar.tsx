@@ -1,22 +1,22 @@
 import React from 'react';
-import { FaSearch, FaSort } from 'react-icons/fa';
+import { FaSearch } from 'react-icons/fa';
 import './Toolbar.scss';
 
 interface ToolbarProps {
     searchValue: string;
     onSearchChange: (value: string) => void;
-    onSortChange: (criteria: string) => void;
+    sortCriteria: 'date' | 'priority' | 'number';
+    onSortChange: (criteria: 'date' | 'priority' | 'number') => void;
     onToggleSortOrder: () => void;
-    sortCriteria: string;
     sortOrder: 'asc' | 'desc';
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
     searchValue,
     onSearchChange,
+    sortCriteria,
     onSortChange,
     onToggleSortOrder,
-    sortCriteria,
     sortOrder
 }) => {
     return (
@@ -25,18 +25,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 <FaSearch className="icon" />
                 <input
                     type="text"
-                    placeholder="Поиск задач..."
+                    placeholder="Поиск по названию или номеру..."
                     value={searchValue}
                     onChange={(e) => onSearchChange(e.target.value)}
                 />
             </div>
             <div className="toolbar-sort">
-                <button
-                    className="toolbar-btn"
-                    onClick={() => onSortChange(sortCriteria === 'date' ? 'priority' : 'date')}
+                <select
+                    value={sortCriteria}
+                    onChange={(e) => onSortChange(e.target.value as 'date' | 'priority' | 'number')}
+                    className="sort-select"
                 >
-                    <FaSort /> Сортировка по {sortCriteria === 'date' ? 'приоритету' : 'дате'}
-                </button>
+                    <option value="date">Дата создания</option>
+                    <option value="priority">Приоритет</option>
+                    <option value="number">Номер</option>
+                </select>
                 <button className="toolbar-btn" onClick={onToggleSortOrder}>
                     {sortOrder === 'asc' ? '▲' : '▼'}
                 </button>
