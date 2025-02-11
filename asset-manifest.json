@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/ae-todo/static/css/main.245e9aad.css",
-    "main.js": "/ae-todo/static/js/main.2e448d93.js",
+    "main.css": "/ae-todo/static/css/main.e0761b1f.css",
+    "main.js": "/ae-todo/static/js/main.fff958b8.js",
     "index.html": "/ae-todo/index.html",
-    "main.245e9aad.css.map": "/ae-todo/static/css/main.245e9aad.css.map",
-    "main.2e448d93.js.map": "/ae-todo/static/js/main.2e448d93.js.map"
+    "main.e0761b1f.css.map": "/ae-todo/static/css/main.e0761b1f.css.map",
+    "main.fff958b8.js.map": "/ae-todo/static/js/main.fff958b8.js.map"
   },
   "entrypoints": [
-    "static/css/main.245e9aad.css",
-    "static/js/main.2e448d93.js"
+    "static/css/main.e0761b1f.css",
+    "static/js/main.fff958b8.js"
   ]
 }
