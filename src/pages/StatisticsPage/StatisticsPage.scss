@@ -1,0 +1,28 @@
+.statistics-page {
+    padding: 20px;
+    text-align: center;
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    .charts-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 40px;
+
+        .chart-item {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+
+            h3 {
+                margin-bottom: 20px;
+            }
+        }
+    }
+}
