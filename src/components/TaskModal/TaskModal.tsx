@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, memo, ChangeEvent } from 'react';
 import { Task as TaskType, Comment } from 'store/types';
 import { Modal } from 'components/Modal/Modal';
-import './TaskModal.scss';
 import { formatDuration, parseDuration } from 'utils/taskUtils';
+import './TaskModal.scss';
 
 interface TaskModalProps {
     task: TaskType;
@@ -98,6 +98,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     const [status, setStatus] = useState(task.status);
     const [files, setFiles] = useState<string[]>(task.files || []);
 
+    // Состояния для увеличенного просмотра фото
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const [viewerIndex, setViewerIndex] = useState<number>(0);
+
     // Для добавления подзадачи и комментариев
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
     const [newSubtaskDescription, setNewSubtaskDescription] = useState('');
@@ -146,6 +150,22 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     const handleDeleteImage = useCallback((index: number) => {
         setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
     }, []);
+
+    // Открытие режима увеличенного просмотра для фото
+    const handleImageClick = useCallback((index: number) => {
+        setViewerIndex(index);
+        setIsViewerOpen(true);
+    }, []);
+
+    // Переключение на следующее фото
+    const handleNextImage = useCallback(() => {
+        setViewerIndex((prevIndex) => (prevIndex + 1) % files.length);
+    }, [files]);
+
+    // Переключение на предыдущее фото
+    const handlePrevImage = useCallback(() => {
+        setViewerIndex((prevIndex) => (prevIndex - 1 + files.length) % files.length);
+    }, [files]);
 
     // Сохранение изменений основной задачи
     const handleSaveChanges = useCallback(() => {
@@ -240,180 +260,209 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }, [task.comments, task, onUpdateTask]);
 
     return (
-        <Modal isOpen={true} onClose={onClose}>
-            <div className="task-modal">
-                <div className="modal-header">
-                    <h2>Детали задачи #{task.number}</h2>
-                    <div className="header-actions">
-                        {isEditing ? (
-                            <button className="save-btn" onClick={handleSaveChanges}>
-                                Сохранить изменения
-                            </button>
-                        ) : (
-                            <button className="edit-btn" onClick={() => setIsEditing(true)}>
-                                Редактировать
-                            </button>
-                        )}
+        <>
+            <Modal isOpen={true} onClose={onClose}>
+                <div className="task-modal">
+                    <div className="modal-header">
+                        <h2>Детали задачи #{task.number}</h2>
+                        <div className="header-actions">
+                            {isEditing ? (
+                                <button className="save-btn" onClick={handleSaveChanges}>
+                                    Сохранить изменения
+                                </button>
+                            ) : (
+                                <button className="edit-btn" onClick={() => setIsEditing(true)}>
+                                    Редактировать
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="modal-content">
+                        {/* Основная информация */}
+                        <section className="section-details">
+                            {isEditing ? (
+                                <>
+                                    <label>Заголовок:</label>
+                                    <input
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                    />
+                                    <label>Описание:</label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                    />
+                                    <label>Приоритет:</label>
+                                    <select
+                                        value={priority}
+                                        onChange={(e) =>
+                                            setPriority(e.target.value as 'low' | 'medium' | 'high')
+                                        }
+                                    >
+                                        <option value="low">Низкий</option>
+                                        <option value="medium">Средний</option>
+                                        <option value="high">Высокий</option>
+                                    </select>
+                                    <label>Статус:</label>
+                                    <select
+                                        value={status}
+                                        onChange={(e) =>
+                                            setStatus(
+                                                e.target.value as 'Queue' | 'Development' | 'Done'
+                                            )
+                                        }
+                                    >
+                                        <option value="Queue">Queue</option>
+                                        <option value="Development">Development</option>
+                                        <option value="Done">Done</option>
+                                    </select>
+                                    <label>Время в работе (формат: 4h30m30s):</label>
+                                    <input
+                                        value={workTime}
+                                        onChange={(e) => setWorkTime(e.target.value)}
+                                        placeholder="например, 4h30m30s"
+                                    />
+                                    <label>Дата окончания:</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={finishedAt}
+                                        onChange={(e) => setFinishedAt(e.target.value)}
+                                    />
+                                    <label>Фото:</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={handleImageUpload}
+                                    />
+                                    {files && files.length > 0 && (
+                                        <div className="images-preview">
+                                            {files.map((src, index) => (
+                                                <div className="image-container" key={index}>
+                                                    <img
+                                                        src={src}
+                                                        alt={`Preview ${index}`}
+                                                        className="preview-image"
+                                                        onClick={() => handleImageClick(index)}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="delete-image-btn"
+                                                        onClick={() => handleDeleteImage(index)}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <p>
+                                        <strong>Заголовок:</strong> {title}
+                                    </p>
+                                    <p>
+                                        <strong>Описание:</strong> {description}
+                                    </p>
+                                    <p>
+                                        <strong>Приоритет:</strong> {priority}
+                                    </p>
+                                    <p>
+                                        <strong>Статус:</strong> {status}
+                                    </p>
+                                    <p>
+                                        <strong>Время в работе:</strong>{' '}
+                                        {workTime ? formattedWorkTime : 'Не задано'}
+                                    </p>
+                                    <p>
+                                        <strong>Дата окончания:</strong>{' '}
+                                        {finishedAt
+                                            ? new Date(finishedAt).toLocaleString()
+                                            : 'Не задана'}
+                                    </p>
+                                    <p>
+                                        <strong>Дата создания:</strong>{' '}
+                                        {new Date(task.createdAt).toLocaleString()}
+                                    </p>
+                                    <div className="images-preview">
+                                        {files && files.length > 0 ? (
+                                            files.map((src, index) => (
+                                                <div className="image-container" key={index}>
+                                                    <img
+                                                        src={src}
+                                                        alt={`Task ${task.id} file ${index}`}
+                                                        className="preview-image"
+                                                        onClick={() => handleImageClick(index)}
+                                                    />
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p>Нет фото</p>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </section>
+                        {/* Подзадачи */}
+                        <section className="section-subtasks">
+                            <h3>Подзадачи</h3>
+                            <ul>{renderedSubtasks}</ul>
+                            {isEditing && (
+                                <div className="add-subtask">
+                                    <input
+                                        type="text"
+                                        placeholder="Название подзадачи"
+                                        value={newSubtaskTitle}
+                                        onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                                    />
+                                    <textarea
+                                        placeholder="Описание подзадачи"
+                                        value={newSubtaskDescription}
+                                        onChange={(e) => setNewSubtaskDescription(e.target.value)}
+                                    />
+                                    <button onClick={handleAddSubtask}>Добавить подзадачу</button>
+                                </div>
+                            )}
+                        </section>
+                        {/* Комментарии */}
+                        <section className="section-comments">
+                            <h3>Комментарии</h3>
+                            <ul>{renderedComments}</ul>
+                            <div className="add-comment">
+                                <textarea
+                                    placeholder="Ваш комментарий"
+                                    value={newCommentText}
+                                    onChange={(e) => setNewCommentText(e.target.value)}
+                                />
+                                <button onClick={handleAddComment}>Добавить комментарий</button>
+                            </div>
+                        </section>
                     </div>
                 </div>
-                <div className="modal-content">
-                    {/* Основная информация */}
-                    <section className="section-details">
-                        {isEditing ? (
-                            <>
-                                <label>Заголовок:</label>
-                                <input value={title} onChange={(e) => setTitle(e.target.value)} />
-                                <label>Описание:</label>
-                                <textarea
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                />
-                                <label>Приоритет:</label>
-                                <select
-                                    value={priority}
-                                    onChange={(e) =>
-                                        setPriority(e.target.value as 'low' | 'medium' | 'high')
-                                    }
-                                >
-                                    <option value="low">Низкий</option>
-                                    <option value="medium">Средний</option>
-                                    <option value="high">Высокий</option>
-                                </select>
-                                <label>Статус:</label>
-                                <select
-                                    value={status}
-                                    onChange={(e) =>
-                                        setStatus(
-                                            e.target.value as 'Queue' | 'Development' | 'Done'
-                                        )
-                                    }
-                                >
-                                    <option value="Queue">Queue</option>
-                                    <option value="Development">Development</option>
-                                    <option value="Done">Done</option>
-                                </select>
-                                <label>Время в работе (формат: 4h30m30s):</label>
-                                <input
-                                    value={workTime}
-                                    onChange={(e) => setWorkTime(e.target.value)}
-                                    placeholder="например, 4h30m30s"
-                                />
-                                <label>Дата окончания:</label>
-                                <input
-                                    type="datetime-local"
-                                    value={finishedAt}
-                                    onChange={(e) => setFinishedAt(e.target.value)}
-                                />
-                                <label>Фото:</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={handleImageUpload}
-                                />
-                                {files && files.length > 0 && (
-                                    <div className="images-preview">
-                                        {files.map((src, index) => (
-                                            <div className="image-container" key={index}>
-                                                <img
-                                                    src={src}
-                                                    alt={`Preview ${index}`}
-                                                    className="preview-image"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="delete-image-btn"
-                                                    onClick={() => handleDeleteImage(index)}
-                                                >
-                                                    ×
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </>
-                        ) : (
-                            <>
-                                <p>
-                                    <strong>Заголовок:</strong> {title}
-                                </p>
-                                <p>
-                                    <strong>Описание:</strong> {description}
-                                </p>
-                                <p>
-                                    <strong>Приоритет:</strong> {priority}
-                                </p>
-                                <p>
-                                    <strong>Статус:</strong> {status}
-                                </p>
-                                <p>
-                                    <strong>Время в работе:</strong>{' '}
-                                    {workTime ? formattedWorkTime : 'Не задано'}
-                                </p>
-                                <p>
-                                    <strong>Дата окончания:</strong>{' '}
-                                    {finishedAt
-                                        ? new Date(finishedAt).toLocaleString()
-                                        : 'Не задана'}
-                                </p>
-                                <p>
-                                    <strong>Дата создания:</strong>{' '}
-                                    {new Date(task.createdAt).toLocaleString()}
-                                </p>
-                                <div className="images-preview">
-                                    {files && files.length > 0 ? (
-                                        files.map((src, index) => (
-                                            <div className="image-container" key={index}>
-                                                <img
-                                                    src={src}
-                                                    alt={`Task ${task.id} file ${index}`}
-                                                    className="preview-image"
-                                                />
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p>Нет фото</p>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </section>
-                    {/* Подзадачи */}
-                    <section className="section-subtasks">
-                        <h3>Подзадачи</h3>
-                        <ul>{renderedSubtasks}</ul>
-                        {isEditing && (
-                            <div className="add-subtask">
-                                <input
-                                    type="text"
-                                    placeholder="Название подзадачи"
-                                    value={newSubtaskTitle}
-                                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                                />
-                                <textarea
-                                    placeholder="Описание подзадачи"
-                                    value={newSubtaskDescription}
-                                    onChange={(e) => setNewSubtaskDescription(e.target.value)}
-                                />
-                                <button onClick={handleAddSubtask}>Добавить подзадачу</button>
-                            </div>
-                        )}
-                    </section>
-                    {/* Комментарии */}
-                    <section className="section-comments">
-                        <h3>Комментарии</h3>
-                        <ul>{renderedComments}</ul>
-                        <div className="add-comment">
-                            <textarea
-                                placeholder="Ваш комментарий"
-                                value={newCommentText}
-                                onChange={(e) => setNewCommentText(e.target.value)}
-                            />
-                            <button onClick={handleAddComment}>Добавить комментарий</button>
-                        </div>
-                    </section>
-                </div>
-            </div>
-        </Modal>
+            </Modal>
+
+            {/* Модальное окно для увеличенного просмотра фото */}
+            {isViewerOpen && (
+                <Modal isOpen={isViewerOpen} onClose={() => setIsViewerOpen(false)}>
+                    <div className="image-viewer">
+                        <button className="nav-button prev" onClick={handlePrevImage}>
+                            &#8249;
+                        </button>
+                        <img
+                            src={files[viewerIndex]}
+                            alt={`Увеличенное фото ${viewerIndex + 1}`}
+                            className="enlarged-image"
+                        />
+                        <button className="nav-button next" onClick={handleNextImage}>
+                            &#8250;
+                        </button>
+                        <button className="close-viewer" onClick={() => setIsViewerOpen(false)}>
+                            ×
+                        </button>
+                    </div>
+                </Modal>
+            )}
+        </>
     );
 };
